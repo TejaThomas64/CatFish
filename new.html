@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🐾 Cat-Fish - Animal Chatting Tinder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #fef8f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      width: 90vw;
+      max-width: 500px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 12px;
+      background: #ff7b54;
+      color: white;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .animal-info {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      background-color: #fff3ec;
+      gap: 12px;
+    }
+
+    .animal-info img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .animal-info span {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fffdfc;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      line-height: 1.4;
+      position: relative;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #d7fbe8;
+      color: #333;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #fff1f1;
+      color: #333;
+      border-bottom-left-radius: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 12px;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      padding: 10px 18px;
+      font-size: 16px;
+      background-color: #ff7b54;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .chat-input button:hover {
+      background-color: #e0633f;
+    }
+
+    .back-to-matches {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #00bcd4;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #00796b;
+      z-index: 1000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-to-matches" id="backToMatches">← Back to Matches</button>
+
+  <div class="chat-container">
+    <div class="chat-header">🐾 Cat-Fish</div>
+    <div class="animal-info">
+      <img id="animalImg" src="" alt="Animal">
+      <span id="animalName">Animal</span>
+    </div>
+    <div class="chat-messages" id="chatBox"></div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Say something..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("userInput");
+    const backToMatchesBtn = document.getElementById("backToMatches");
+
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const userAnimal = urlParams.get('userAnimal') || 'unknown';
+    const matchedAnimalName = urlParams.get('matchedName') || 'Animal';
+    const matchedAnimalImg = urlParams.get('matchedImg') || 'https://placekitten.com/200/200';
+    const userImg = urlParams.get('userImg') || '';
+
+    // Set the animal info in the chat header
+    document.getElementById("animalName").textContent = matchedAnimalName;
+    document.getElementById("animalImg").src = matchedAnimalImg;
+
+    const animals = [
+      { 
+        name: "Cuddly Cat", 
+        img: "https://placekitten.com/200/200", 
+        playful: [
+          "Are you trying to get my attention? Because it's working 😼",
+          "You're making my tail twitch with that comment",
+          "I could pretend to be aloof, but I'm actually interested",
+          "Purr-haps you should keep talking...",
+          "Is this your way of asking for cuddles? 😽"
+        ],
+        flirty: [
+          "You're making me purr... and I don't purr for just anyone",
+          "Is it hot in here or is it just your animal magnetism?",
+          "I usually play hard to get, but for you I might make an exception"
+        ],
+        supportive: [
+          "*gentle headbutt* You seem like you need this",
+          "I'm not great at emotions, but I'll sit beside you silently",
+          "Hmph. Fine, I'll listen... but only because you look sad"
+        ],
+        practical: [
+          "The secret to happiness? Naps. Lots of naps.",
+          "Pro tip: Always land on your feet",
+          "Human pets > catnip. Fight me."
+        ],
+        goodbye: [
+          "Fine, leave then... but you'll miss my purring 😾",
+          "Bye... I'll be napping if you change your mind",
+          "Was it something I said? *flicks tail* Farewell then"
+        ]
+      },
+      { 
+        name: "Loyal Dog", 
+        img: "https://placedog.net/200/200?id=10", 
+        playful: [
+          "You're my new favorite human! Wait, are you even human?",
+          "Want to play fetch with my heart?",
+          "I'd wag my tail for you any day",
+          "Who's a good human? YOU ARE!",
+          "Let's go for a walk... to the park of love! 🦴"
+        ],
+        flirty: [
+          "You're the best thing since... well, everything!",
+          "I'd fetch your slippers any day, but you're too perfect to wear them",
+          "You're making my heart beat faster than when I see the mailman"
+        ],
+        supportive: [
+          "*whines* Tell me who hurt you! I'll fetch their slippers!",
+          "*leans against you* I'm here for you, best friend!",
+          "Let me lick your face until you smile again!"
+        ],
+        practical: [
+          "The key to happiness? Belly rubs and treats!",
+          "When in doubt, wag your tail!",
+          "Always sniff before you eat. Life advice."
+        ],
+        goodbye: [
+          "Aww, do you have to go? Come back soon! 🥺",
+          "Bye bye! I'll wait right here for you!",
+          "Woof! It was so nice chatting! Come play again soon!"
+        ]
+      },
+      { 
+        name: "Cool Koala", 
+        img: "https://loremflickr.com/200/200/koala", 
+        playful: [
+          "You're more interesting than my eucalyptus leaves",
+          "I'd stay awake for you... maybe",
+          "You're making me climb down from my tree of indifference",
+          "Ehh... you're not totally boring",
+          "Wanna cuddle? I'm soft and sleepy."
+        ],
+        flirty: [
+          "I'd share my last eucalyptus leaf with you",
+          "You're the only one I'd wake up from my nap for",
+          "I don't usually move fast, but for you I might... eventually"
+        ],
+        supportive: [
+          "Ehh... want to nap together? Naps fix everything",
+          "*sleepy hug* There there...",
+          "I'm not good with words, but here's a leaf 🍃"
+        ],
+        practical: [
+          "Life hack: Sleep 20 hours a day",
+          "Pro tip: Hug trees. They're great listeners.",
+          "The secret? Low expectations. And eucalyptus."
+        ],
+        goodbye: [
+          "Zzz... oh you're leaving? Bye then...",
+          "Was nice... now I can nap...",
+          "Ehh... catch you later maybe"
+        ]
+      },
+      { 
+        name: "Foxy Fox", 
+        img: "https://loremflickr.com/200/200/fox", 
+        playful: [
+          "Are you trying to outfox me? Good luck with that 😏",
+          "You're making my tail twitch with excitement",
+          "I usually play hard to get, but you're intriguing",
+          "What's a sly fox gotta do to get your number?",
+          "Let's play a game... how about 'who can stare the longest'?"
+        ],
+        flirty: [
+          "You're the only one I'd let steal my chicken",
+          "I'd let you join me in my den anytime",
+          "You're making me abandon my usual slyness"
+        ],
+        supportive: [
+          "*nuzzles* Even foxes need comfort sometimes",
+          "I'll be your silver lining... literally, look at my fur",
+          "Tell me your troubles while I look mysteriously handsome"
+        ],
+        practical: [
+          "Rule #1: Always have an escape route",
+          "Chickens taste better when you don't get caught",
+          "The moon is just the night's sun. Deep, right?"
+        ],
+        goodbye: [
+          "Leaving so soon? The night is still young, you know...",
+          "Farewell, you clever creature. Come back anytime 😉",
+          "Was it something I said? Just kidding, I know I'm irresistible. Bye now!"
+        ]
+      }
+    ];
+
+    // Special responses for specific messages
+    const specialResponses = {
+      "hi": {
+        "Cuddly Cat": "Purrr... hello there! 😽",
+        "Loyal Dog": "Woof woof! Hello friend! 🐕",
+        "Cool Koala": "Ehh... sup? 🐨",
+        "Foxy Fox": "Well hello, you sly creature 😼"
+      },
+      "hello": {
+        "Cuddly Cat": "Purrr... hello there! 😽",
+        "Loyal Dog": "Woof woof! Hello friend! 🐕",
+        "Cool Koala": "Ehh... sup? 🐨",
+        "Foxy Fox": "Well hello, you sly creature 😼"
+      },
+      "hey": {
+        "Cuddly Cat": "Purrr... hello there! 😽",
+        "Loyal Dog": "Woof woof! Hello friend! 🐕",
+        "Cool Koala": "Ehh... sup? 🐨",
+        "Foxy Fox": "Well hello, you sly creature 😼"
+      },
+      "thanks": {
+        "Cuddly Cat": "You're welcome... now pet me 😸",
+        "Loyal Dog": "Anything for you, best friend! 🦴",
+        "Cool Koala": "No worries mate... zzz 🥱",
+        "Foxy Fox": "Don't mention it... or do, I like compliments 😏"
+      },
+      "thank you": {
+        "Cuddly Cat": "You're welcome... now pet me 😸",
+        "Loyal Dog": "Anything for you, best friend! 🦴",
+        "Cool Koala": "No worries mate... zzz 🥱",
+        "Foxy Fox": "Don't mention it... or do, I like compliments 😏"
+      },
+      "love you": {
+        "Cuddly Cat": "Purrr... I might tolerate you too 😻",
+        "Loyal Dog": "I LOVE YOU MORE! 🦴",
+        "Cool Koala": "That's... nice. Zzz... 🥱",
+        "Foxy Fox": "Careful now, or I might actually start to like you 😏"
+      },
+      "bye": {
+        "Cuddly Cat": "Fine, leave then... but you'll miss my purring 😾",
+        "Loyal Dog": "Aww, do you have to go? Come back soon! 🥺",
+        "Cool Koala": "Zzz... oh you're leaving? Bye then...",
+        "Foxy Fox": "Leaving so soon? The night is still young, you know..."
+      },
+      "goodbye": {
+        "Cuddly Cat": "Fine, leave then... but you'll miss my purring 😾",
+        "Loyal Dog": "Aww, do you have to go? Come back soon! 🥺",
+        "Cool Koala": "Zzz... oh you're leaving? Bye then...",
+        "Foxy Fox": "Leaving so soon? The night is still young, you know..."
+      }
+    };
+
+    // Emotional/serious triggers
+    const seriousTriggers = {
+      support: ["sad", "cry", "depressed", "lonely", "help", "miss", "upset", "bad day"],
+      practical: ["how", "what", "when", "where", "why", "advice", "tip", "should i"]
+    };
+
+    // Find the current animal based on the matched name
+    let currentAnimal = animals.find(a => a.name === matchedAnimalName) || animals[0];
+    
+    // Add welcome message
+    setTimeout(() => {
+      addMessage(`${currentAnimal.name}: ${specialResponses["hi"][currentAnimal.name] || "Hello there!"}`, "bot");
+    }, 500);
+
+    function sendMessage() {
+      const msg = input.value.trim().toLowerCase();
+      if (msg === "") return;
+
+      addMessage(`You (${userAnimal}): ${input.value}`, "user");
+      input.value = "";
+
+      // Get reply
+      const reply = getAnimalResponse(msg);
+      addMessage(`${currentAnimal.name}: ${reply}`, "bot");
+
+      // Check if it's a goodbye message
+      if (msg.includes('bye') || msg.includes('goodbye') || msg.includes('see you')) {
+        // Show back to matches button after a delay
+        setTimeout(() => {
+          backToMatchesBtn.style.display = 'block';
+        }, 1500);
+      }
+    }
+
+    function getAnimalResponse(msg) {
+      // Check for special responses first
+      const lowerMsg = msg.toLowerCase();
+      
+      // Check exact matches
+      if (specialResponses[lowerMsg] && specialResponses[lowerMsg][currentAnimal.name]) {
+        return specialResponses[lowerMsg][currentAnimal.name];
+      }
+      
+      // Check for support triggers
+      if (seriousTriggers.support.some(word => lowerMsg.includes(word))) {
+        const responses = currentAnimal.supportive;
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
+      // Check for practical triggers
+      if (seriousTriggers.practical.some(word => lowerMsg.includes(word))) {
+        const responses = currentAnimal.practical;
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
+      // Check for goodbye triggers
+      if (lowerMsg.includes("bye") || lowerMsg.includes("goodbye") || lowerMsg.includes("see you")) {
+        const responses = currentAnimal.goodbye;
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
+      // Default to playful or flirty (50/50 chance)
+      const isFlirty = Math.random() > 0.5;
+      const responses = isFlirty ? currentAnimal.flirty : currentAnimal.playful;
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  
+    // Enter key to send message
+    input.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    // Back to matches button
+    backToMatchesBtn.addEventListener('click', function() {
+      window.location.href = 'profile.html#page3';
+    });
+  </script>
+</body>
+</html>
