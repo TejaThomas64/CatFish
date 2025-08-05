@@ -19,7 +19,7 @@ const sampleMatches = [
         hobbies: "Laser chase, naps, knocking things off tables",
         lookingFor: "A lazy goldfish to vibe with",
         message: "Let's knock stuff off the table together!",
-        avatar: "cat3.jpg"
+        avatar: "pics/cat3.jpg"
     },
     {
         name: "Bubbles",
@@ -27,7 +27,7 @@ const sampleMatches = [
         hobbies: "Swimming in circles, blowing bubbles, hiding in castles",
         lookingFor: "A dog who won't bark at me",
         message: "Don't tap on my glass, tap on my heart.",
-        avatar: "fish.jpg"
+        avatar: "pics/fish.jpg"
     },
     {
         name: "Rover",
@@ -35,7 +35,7 @@ const sampleMatches = [
         hobbies: "Belly rubs, barking at mailmen, playing fetch",
         lookingFor: "Someone who appreciates a good game of fetch",
         message: "Will you throw my heart like a ball?",
-        avatar: "dog4.jpg"
+        avatar: "pics/dog4.jpg"
     },
     {
         name: "Princess Mittens",
@@ -43,7 +43,7 @@ const sampleMatches = [
         hobbies: "Scratching couches, posing for photos, ignoring humans",
         lookingFor: "Someone worthy of my royal attention",
         message: "Bow to me... or swipe right!",
-        avatar: "cat5.jpg"
+        avatar: "pics/cat5.jpg"
     },
     {
         name: "Captain grab",
@@ -51,7 +51,7 @@ const sampleMatches = [
         hobbies: "sleeping in trees, eating eucalyptus, climbing",
         lookingFor: "An adventurous soul to explore the tank with",
         message: "Dive deep into love with me",
-        avatar: "koala.jpg"
+        avatar: "pics/koala.jpg"
     },
     {
         name: "Goldie",
